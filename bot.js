@@ -291,44 +291,54 @@ function startDailyUpdates() {
 // Connect to Discord with error handling
 try {
     if (client) {
-        // Bot ready event
-        client.once('ready', async () => {
-            console.log('🎭 ✅ ALBJ Discord Bot is ONLINE!');
-            console.log(`🤖 Logged in as: ${client.user.tag}`);
-            console.log('🔗 Bot is ready to serve the ALBJ community!');
+        // Improved token handling
+        const discordToken = process.env.BOT_TOKEN || process.env.DISCORD_TOKEN;
+        
+        if (!discordToken) {
+            console.error('❌ ERROR: No Discord token found! Please set BOT_TOKEN or DISCORD_TOKEN environment variable.');
+            global.discordStatus = 'missing token';
+        } else {
+            console.log(`Token detected: Using ${process.env.BOT_TOKEN ? 'BOT_TOKEN' : 'DISCORD_TOKEN'} (${discordToken.substring(0, 5)}...)`);
             
-            global.discordStatus = 'online';
-            
-            // Set bot status
-            client.user.setActivity('🐉 ALBJ Token Launch: June 12, 2025', { type: 'WATCHING' });
-            
-            try {
-                // Deploy slash commands
-                await deployCommands();
+            // Bot ready event
+            client.once('ready', async () => {
+                console.log('🎭 ✅ ALBJ Discord Bot is ONLINE!');
+                console.log(`🤖 Logged in as: ${client.user.tag}`);
+                console.log('🔗 Bot is ready to serve the ALBJ community!');
                 
-                // Start daily updates scheduler
-                startDailyUpdates();
+                global.discordStatus = 'online';
                 
-                console.log('🌟 Daily updates scheduler started!');
-            } catch (err) {
-                console.error('Error in initialization tasks:', err);
-                // Continue running even if these fail
-            }
-        });
+                // Set bot status
+                client.user.setActivity('🐉 ALBJ Token Launch: June 12, 2025', { type: 'WATCHING' });
+                
+                try {
+                    // Deploy slash commands
+                    await deployCommands();
+                    
+                    // Start daily updates scheduler
+                    startDailyUpdates();
+                    
+                    console.log('🌟 Daily updates scheduler started!');
+                } catch (err) {
+                    console.error('Error in initialization tasks:', err);
+                    // Continue running even if these fail
+                }
+            });
 
-        // Error event handler
-        client.on('error', (error) => {
-            console.error('Discord client error:', error);
-            global.discordStatus = 'error';
-        });
+            // Error event handler
+            client.on('error', (error) => {
+                console.error('Discord client error:', error);
+                global.discordStatus = 'error';
+            });
 
-        // Login with error handling
-        console.log('Attempting to log in to Discord...');
-        client.login(process.env.BOT_TOKEN || process.env.DISCORD_TOKEN).catch(err => {
-            console.error('Failed to login to Discord:', err);
-            global.discordStatus = 'login failed';
-            // Keep server running for health checks
-        });
+            // Login with error handling
+            console.log('Attempting to log in to Discord...');
+            client.login(discordToken).catch(err => {
+                console.error('Failed to login to Discord:', err);
+                global.discordStatus = 'login failed';
+                // Keep server running for health checks
+            });
+        }
     }
 } catch (error) {
     console.error('Error connecting to Discord:', error);
