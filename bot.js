@@ -148,6 +148,30 @@ if (client) {
                 else if (commandName === 'test') {
                     await interaction.editReply('Bot is working! 🎉');
                 }
+                // Countdown command
+                else if (commandName === 'countdown') {
+                    // Set the ALBJ token launch date
+                    const launchDate = new Date('June 12, 2025 12:00:00 UTC');
+                    const currentDate = new Date();
+                    
+                    // Calculate time difference
+                    const timeDiff = launchDate - currentDate;
+                    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    const countdownEmbed = new EmbedBuilder()
+                        .setTitle('🚀 ALBJ Token Launch Countdown')
+                        .setDescription(`**${days} days, ${hours} hours, ${minutes} minutes**`)
+                        .addFields(
+                            { name: 'Launch Date', value: 'June 12, 2025' },
+                            { name: 'Get Ready!', value: 'Join our community to prepare for the launch!' }
+                        )
+                        .setColor('#FFA500')
+                        .setFooter({ text: 'ALBJ - The future of Alebrije spirits on the blockchain' });
+                    
+                    await interaction.editReply({ embeds: [countdownEmbed] });
+                }
                 // Spirits command
                 else if (commandName === 'spirits') {
                     const spiritEmbed = new EmbedBuilder()
@@ -220,6 +244,10 @@ async function deployCommands() {
             {
                 name: 'spirits',
                 description: 'Learn about Alebrije spirits',
+            },
+            {
+                name: 'countdown',
+                description: 'See the countdown to ALBJ token launch',
             }
         ];
         
@@ -227,8 +255,17 @@ async function deployCommands() {
         
         console.log('Started refreshing application (/) commands.');
         
+        // Handle BigInt serialization issue - convert to string if needed
+        let applicationId = client.user.id;
+        // Check if it's a BigInt and convert to string if necessary
+        if (typeof applicationId === 'bigint' || (typeof applicationId === 'object' && applicationId !== null)) {
+            applicationId = String(applicationId);
+        }
+        
+        console.log(`Deploying commands to application ID: ${applicationId}`);
+        
         await rest.put(
-            Routes.applicationCommands(client.user.id),
+            Routes.applicationCommands(applicationId),
             { body: commands },
         );
         
