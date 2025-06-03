@@ -7,8 +7,8 @@
   "deploy": {
     "startCommand": "./start.sh",
     "healthcheckPath": "/health",
-    "healthcheckTimeout": 120,
-    "restartPolicyType": "on-failure",
+    "healthcheckTimeout": 180,
+    "restartPolicyType": "always",
     "restartPolicyMaxRetries": 10
   },
   "env": {
@@ -21,14 +21,23 @@
       "dest": "health-server.js"
     },
     {
+      "src": "/debug",
+      "dest": "health-server.js"
+    },
+    {
       "src": "/",
+      "dest": "health-server.js"
+    },
+    {
+      "src": "/*",
       "dest": "health-server.js"
     }
   ],
   "watchPaths": [
     "*.js",
     "commands/*.js",
-    "package.json",
-    "package-lock.json"
+    "health-server.js",
+    "debug-server.js",
+    "package.json"
   ]
 } 
