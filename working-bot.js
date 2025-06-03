@@ -1,0 +1,1 @@
+const { Client, GatewayIntentBits } = require("discord.js"); const config = require("./config"); const client = new Client({ intents: [GatewayIntentBits.Guilds] }); client.once("ready", () => { console.log("✅ ALBJ Discord Bot is ready!"); console.log(`🔗 Bot Name: ${client.user.tag}`); console.log("🎭 Bot is online!"); }); client.login(config.DISCORD_BOT_TOKEN);
