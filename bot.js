@@ -35,11 +35,28 @@ const {
 // Load environment variables
 dotenv.config();
 
-// Create Express app for health checks
+// Create Discord client with ALL intents (privileged intents enabled)
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,        // PRIVILEGED - Now enabled!
+        GatewayIntentBits.GuildMembers,          // PRIVILEGED - Now enabled!
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildPresences         // PRIVILEGED - Now enabled!
+    ]
+});
+
+// Collections for commands and cooldowns
+client.commands = new Collection();
+const cooldowns = new Collection();
+
+// Create Express app for health checks - MOVED OUTSIDE READY EVENT
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Health check endpoint
+// Health check endpoint - MOVED OUTSIDE READY EVENT
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
@@ -49,21 +66,11 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Create Discord client
-const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildMessageReactions,
-        GatewayIntentBits.GuildVoiceStates
-    ]
+// Start the health check server - MOVED OUTSIDE READY EVENT
+const server = http.createServer(app);
+server.listen(PORT, () => {
+    console.log(`Health check server running on port ${PORT}`);
 });
-
-// Collections for commands and cooldowns
-client.commands = new Collection();
-const cooldowns = new Collection();
 
 console.log('🤖 ALBJ Discord Bot is starting...');
 
@@ -113,24 +120,21 @@ function createSpiritEmbed(spirit) {
 // BOT EVENTS
 // =====================================
 
-client.once('ready', () => {
-    console.log('✅ ALBJ Discord Bot is ready!');
-    console.log(`🔗 Bot Name: ${client.user.tag}`);
-    console.log('🎭 ALBJ Discord Bot is ready to serve the community!');
+client.once('ready', async () => {
+    console.log('🎭 ✅ ALBJ Discord Bot is ONLINE!');
+    console.log(`🤖 Logged in as: ${client.user.tag}`);
+    console.log('🔗 Bot is ready to serve the ALBJ community!');
     
     // Set bot status
-    client.user.setActivity('🎭 Alebrije Spirits | /help for commands', { type: 'WATCHING' });
+    client.user.setActivity('🐉 ALBJ Token Launch: June 12, 2025', { type: 'WATCHING' });
+    
+    // Deploy slash commands
+    await deployCommands();
     
     // Start daily updates scheduler
     startDailyUpdates();
     
     console.log('🌟 Daily updates scheduler started!');
-
-    // Start the health check server
-    const server = http.createServer(app);
-    server.listen(PORT, () => {
-        console.log(`Health check server running on port ${PORT}`);
-    });
 });
 
 // Welcome new members
