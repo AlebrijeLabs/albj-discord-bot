@@ -22,9 +22,12 @@ EXPOSE 3000
 # Set environment to production
 ENV NODE_ENV=production
 
+# Use a simple bash script to start both servers
+RUN echo '#!/bin/sh\nnode health-server.js &\nnode bot.js' > start.sh && chmod +x start.sh
+
 # Set retries to 10 to give more time to start up
 HEALTHCHECK --interval=5s --timeout=10s --start-period=10s --retries=10 \
   CMD curl -f http://localhost:3000/health || exit 1
 
-# Run the bot
-CMD ["node", "bot.js"] 
+# Run both the health check server and the Discord bot
+CMD ["./start.sh"] 

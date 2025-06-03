@@ -5,7 +5,7 @@
     "dockerfilePath": "./Dockerfile"
   },
   "deploy": {
-    "startCommand": "node bot.js",
+    "startCommand": "./start.sh",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 120,
     "restartPolicyType": "on-failure",
@@ -18,11 +18,11 @@
   "routes": [
     {
       "src": "/health",
-      "dest": "bot.js"
+      "dest": "health-server.js"
     },
     {
       "src": "/",
-      "dest": "bot.js"
+      "dest": "health-server.js"
     }
   ],
   "watchPaths": [
