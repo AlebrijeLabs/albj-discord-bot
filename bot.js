@@ -56,19 +56,26 @@ const cooldowns = new Collection();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Health check endpoint - MOVED OUTSIDE READY EVENT
+// Enhanced health check endpoint with more detailed status
 app.get('/health', (req, res) => {
+  console.log('Health check requested');
   res.status(200).json({
     status: 'healthy',
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
   });
+  console.log('Health check responded with status 200');
+});
+
+// Root path for basic connectivity testing
+app.get('/', (req, res) => {
+  res.status(200).send('ALBJ Discord Bot is online');
 });
 
 // Start the health check server - MOVED OUTSIDE READY EVENT
 const server = http.createServer(app);
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Health check server running on port ${PORT}`);
 });
 

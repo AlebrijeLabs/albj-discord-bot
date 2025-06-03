@@ -7,7 +7,7 @@
   "deploy": {
     "startCommand": "node bot.js",
     "healthcheckPath": "/health",
-    "healthcheckTimeout": 100,
+    "healthcheckTimeout": 120,
     "restartPolicyType": "on-failure",
     "restartPolicyMaxRetries": 10
   },
@@ -18,6 +18,10 @@
   "routes": [
     {
       "src": "/health",
+      "dest": "bot.js"
+    },
+    {
+      "src": "/",
       "dest": "bot.js"
     }
   ],
