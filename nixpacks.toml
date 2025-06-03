@@ -1,10 +1,26 @@
 # nixpacks.toml
 
-[phases.setup]
-nixPkgs = ["nodejs_20"]
-
-[phases.install]
-cmds = ["npm install"]
+[build]
+cmd = "npm ci && npm run build"
 
 [start]
-cmd = "node bot.js" 
+cmd = "node bot.js"
+
+[env]
+NODE_ENV = "production"
+PORT = "3000"
+WORKDIR = "/app"
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "python3", "gcc", "make", "wget"]
+
+[phases.install]
+cmds = [
+  "cd /app",
+  "npm ci --only=production"
+]
+
+[phases.environment]
+cmds = [
+  "export NODE_OPTIONS=--max_old_space_size=4096"
+] 

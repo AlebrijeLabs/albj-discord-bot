@@ -4,6 +4,9 @@ const axios = require('axios');
 const config = require('./config');
 const { alebrijeSpirits, getRandomSpirit, getSpiritByName } = require('./spirits');
 const { dailyUpdateTemplates, generateDailyUpdate } = require('./daily-updates');
+const http = require('http');
+const express = require('express');
+const dotenv = require('dotenv');
 
 // Import new command modules
 const { 
@@ -28,6 +31,23 @@ const {
     handleMyStats, 
     handleNotifications 
 } = require('./commands/engagement');
+
+// Load environment variables
+dotenv.config();
+
+// Create Express app for health checks
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 
 // Create Discord client
 const client = new Client({
@@ -105,6 +125,12 @@ client.once('ready', () => {
     startDailyUpdates();
     
     console.log('🌟 Daily updates scheduler started!');
+
+    // Start the health check server
+    const server = http.createServer(app);
+    server.listen(PORT, () => {
+        console.log(`Health check server running on port ${PORT}`);
+    });
 });
 
 // Welcome new members
@@ -646,7 +672,7 @@ async function handleSetup(interaction) {
 // =====================================
 
 // Login to Discord
-client.login(config.DISCORD_BOT_TOKEN);
+client.login(process.env.DISCORD_TOKEN);
 
 // Graceful shutdown
 process.on('SIGINT', () => {
@@ -1055,4 +1081,6 @@ async function handlePrefixCommand(message, commandName, args) {
             // Don't respond to unknown prefix commands
             break;
     }
-} 
+}
+
+module.exports = { app, client }; 
