@@ -102,7 +102,155 @@ try {
     // Continue running for health checks even if Discord fails
 }
 
-// Rest of your bot code...
+// Add interaction handler right after client initialization
+if (client) {
+    // Handle all interaction types (slash commands, buttons, etc.)
+    client.on('interactionCreate', async interaction => {
+        console.log(`Received interaction: ${interaction.commandName || interaction.customId || 'unknown'}`);
+        
+        try {
+            // IMMEDIATELY acknowledge the interaction to prevent timeout
+            if (interaction.isCommand() || interaction.isButton()) {
+                await interaction.deferReply().catch(console.error);
+                console.log('Interaction deferred successfully');
+            }
+            
+            // Handle different interaction types
+            if (interaction.isCommand()) {
+                // Handle slash commands
+                const { commandName } = interaction;
+                console.log(`Processing slash command: ${commandName}`);
+                
+                // Simple help command response
+                if (commandName === 'help') {
+                    const helpEmbed = new EmbedBuilder()
+                        .setTitle('ALBJ Bot Commands')
+                        .setDescription('Here are the available commands:')
+                        .addFields(
+                            { name: '/help', value: 'Show this help message' },
+                            { name: '/info', value: 'Get information about ALBJ token' },
+                            { name: '/spirits', value: 'View the Alebrije spirits' }
+                        )
+                        .setColor('#00ff88');
+                    
+                    await interaction.editReply({ embeds: [helpEmbed] });
+                } 
+                // Basic info command
+                else if (commandName === 'info') {
+                    const infoEmbed = new EmbedBuilder()
+                        .setTitle('ALBJ Token Information')
+                        .setDescription('ALBJ is a blockchain-powered community celebrating Alebrije spirits.')
+                        .setColor('#ff6600');
+                    
+                    await interaction.editReply({ embeds: [infoEmbed] });
+                }
+                // Simple test command
+                else if (commandName === 'test') {
+                    await interaction.editReply('Bot is working! 🎉');
+                }
+                // Spirits command
+                else if (commandName === 'spirits') {
+                    const spiritEmbed = new EmbedBuilder()
+                        .setTitle('Alebrije Spirits')
+                        .setDescription('Alebrijes are brightly colored Mexican folk art sculptures of fantastical creatures.')
+                        .addFields(
+                            { name: 'Dragon', value: 'Represents strength and power' },
+                            { name: 'Jaguar', value: 'Represents agility and stealth' },
+                            { name: 'Eagle', value: 'Represents vision and freedom' },
+                            { name: 'Serpent', value: 'Represents wisdom and transformation' }
+                        )
+                        .setColor('#ff00aa')
+                        .setFooter({ text: 'ALBJ - Connecting communities through culture' });
+                    
+                    await interaction.editReply({ embeds: [spiritEmbed] });
+                }
+                // Unknown command
+                else {
+                    await interaction.editReply({ content: `Command ${commandName} is still under development. Try /help for available commands.` });
+                }
+            } 
+            else if (interaction.isButton()) {
+                // Handle button interactions
+                const { customId } = interaction;
+                console.log(`Processing button interaction: ${customId}`);
+                
+                await interaction.editReply({ content: `Button ${customId} clicked! This feature is coming soon.` });
+            }
+        } catch (error) {
+            console.error('Error handling interaction:', error);
+            
+            // Try to respond with an error message
+            try {
+                const errorMessage = 'An error occurred while processing your command. Please try again later.';
+                
+                if (interaction.deferred) {
+                    await interaction.editReply({ content: errorMessage }).catch(console.error);
+                } else if (!interaction.replied) {
+                    await interaction.reply({ content: errorMessage, ephemeral: true }).catch(console.error);
+                }
+            } catch (followUpError) {
+                console.error('Error sending error response:', followUpError);
+            }
+        }
+    });
+}
+
+// Deploy slash commands function
+async function deployCommands() {
+    try {
+        const { REST } = require('@discordjs/rest');
+        const { Routes } = require('discord-api-types/v9');
+        
+        console.log('Deploying slash commands...');
+        
+        // Basic set of commands
+        const commands = [
+            {
+                name: 'help',
+                description: 'Get help with ALBJ Bot commands',
+            },
+            {
+                name: 'info',
+                description: 'Learn about the ALBJ token',
+            },
+            {
+                name: 'test',
+                description: 'Test if the bot is working',
+            },
+            {
+                name: 'spirits',
+                description: 'Learn about Alebrije spirits',
+            }
+        ];
+        
+        const rest = new REST({ version: '9' }).setToken(process.env.BOT_TOKEN || process.env.DISCORD_TOKEN);
+        
+        console.log('Started refreshing application (/) commands.');
+        
+        await rest.put(
+            Routes.applicationCommands(client.user.id),
+            { body: commands },
+        );
+        
+        console.log('Successfully reloaded application (/) commands.');
+    } catch (error) {
+        console.error('Error deploying commands:', error);
+    }
+}
+
+// Function to start daily updates scheduler
+function startDailyUpdates() {
+    // Example scheduled task - runs every day at 12:00 PM
+    cron.schedule('0 12 * * *', async () => {
+        try {
+            console.log('Running daily update task...');
+            // Your daily update code here
+        } catch (error) {
+            console.error('Error in daily update task:', error);
+        }
+    });
+}
+
 // Connect to Discord with error handling
 try {
     if (client) {
